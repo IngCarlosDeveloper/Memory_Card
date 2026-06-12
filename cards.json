@@ -1,0 +1,47 @@
+[
+  {
+    "id_card": 1,
+    "name": "KNIGHT",
+    "location": "img/I-KNIGHT.png"
+  },
+  {
+    "id_card": 2,
+    "name": "ARCHER",
+    "location": "img/II-ARCHER.png"
+  },
+  {
+    "id_card": 3,
+    "name": "WIZARD",
+    "location": "img/III-WIZARD.png"
+  },
+  {
+    "id_card": 4,
+    "name": "PALADIN",
+    "location": "img/IV-PALADIN.png"
+  },
+  {
+    "id_card": 5,
+    "name": "DRAGON",
+    "location": "img/V-DRAGON.png"
+  },
+  {
+    "id_card": 6,
+    "name": "CROWN",
+    "location": "img/VI-CROWN.png"
+  },
+  {
+    "id_card": 7,
+    "name": "TOWER",
+    "location": "img/VII-TOWER.png"
+  },
+  {
+    "id_card": 8,
+    "name": "SWORD",
+    "location": "img/IIX-SWORD.png"
+  },
+  {
+    "id_card": 9,
+    "name": "ORB",
+    "location": "img/IX-ORB.png"
+  }
+]
