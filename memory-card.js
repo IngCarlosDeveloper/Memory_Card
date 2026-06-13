@@ -1,151 +1,152 @@
-let id_carta = 0; //autoincremental para enlazar las cartas random con su tipo
-let Carta1;
-let Carta2;
-let puntos = 0;
-let vidas = 5;
-let diccionario_random = {};
-let enable_game = true;
+let cardId = 0; // Autoincremental para enlazar las cartas con su tipo
+
+let card1;
+let card2;
+
+let score = 0;
+let lives = 5;
+
+let cardDictionary = {};
+
+let gameEnabled = true;
 let cooldown = false;
 
-//Funcion para pedir el array con el json de las cartas
-async function CargarCartas() {
-  const respuesta = await fetch("cards.json");
+// Carga las cartas desde el archivo JSON
+async function cargarCartas() {
+  const response = await fetch("cards.json");
 
-  const cartas = await respuesta.json();
+  const cards = await response.json();
 
-  return cartas;
+  return cards;
 }
 
-//Funcion para recibir la carta e insertarla en el div
-function RenderizarCartas(objetoCarta) {
+// Inserta una carta en el tablero
+function renderizarCartas(cardObject) {
   const card = document.createElement("div");
-  const card_inner = document.createElement("div");
+  const cardInner = document.createElement("div");
 
   card.classList.add("card");
-  card_inner.classList.add("card_inner");
+  cardInner.classList.add("card_inner");
 
-  const mesa = document.getElementById("mesa-imagenes");
+  const gameBoard = document.getElementById("mesa-imagenes");
 
-  let img = document.createElement("img");
+  let frontImage = document.createElement("img");
+  frontImage.classList.add("front");
+  frontImage.src = cardObject.location;
 
-  //img.className = "carta";
-  img.classList.add("front");
+  let backImage = document.createElement("img");
+  backImage.classList.add("carta", "back");
 
-  //console.log(objetoCarta.location);
-  img.src = objetoCarta.location;
+  backImage.id = ++cardId;
+  card.dataset.id = cardId;
 
-  //img.dataset.id = objetoCarta.name;
+  backImage.src = "img/REVERSE.png";
 
-  let imgBack = document.createElement("img");
-  imgBack.classList.add("carta", "back");
-  imgBack.id = ++id_carta;
-  card.dataset.id = id_carta;
-  imgBack.src = "img/REVERSE.png";
+  cardDictionary[cardId] = cardObject.name;
 
-  diccionario_random[id_carta] = objetoCarta.name;
+  gameBoard.appendChild(card);
+  card.appendChild(cardInner);
 
-  mesa.appendChild(card);
-  card.appendChild(card_inner);
-  card_inner.appendChild(img);
-  card_inner.appendChild(imgBack);
+  cardInner.appendChild(frontImage);
+  cardInner.appendChild(backImage);
 }
 
-function numero_aleatorio(min, max) {
+function numeroAleatorio(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function mezclar(array) {
-  let largo = array.length;
-  let conteo_cartas = [];
+function mezclar(cardsArray) {
+  let totalCards = cardsArray.length;
+  let cardCounter = [];
 
   for (let j = 0; j < 2; j++) {
-    for (let i = 0; i < largo; i++) {
-      conteo_cartas.push(i);
+    for (let i = 0; i < totalCards; i++) {
+      cardCounter.push(i);
     }
   }
 
-  console.log(diccionario_random);
+  console.log(cardDictionary);
 
-  //console.log(conteo_cartas);
+  while (cardCounter.length > 0) {
+    let randomPosition = numeroAleatorio(0, cardCounter.length);
 
-  while (conteo_cartas.length > 0) {
-    //console.log(conteo_cartas.length);
-    let temp = numero_aleatorio(0, conteo_cartas.length);
-
-    RenderizarCartas(array[conteo_cartas[temp]]);
-    conteo_cartas.splice(temp, 1); //Esto elimina la posicion random
+    renderizarCartas(cardsArray[cardCounter[randomPosition]]);
+    cardCounter.splice(randomPosition, 1);
   }
 }
 
 class Carta {
-  constructor(idHtml, tipo) {
-    this.idHtml = idHtml;
-    this.tipo = tipo;
+  constructor(htmlId, type) {
+    this.htmlId = htmlId;
+    this.type = type;
   }
 }
 
 function actualizarStats() {
-  //console.log("vida: ", vidas, " puntos: ", puntos);
-  document.getElementById("Vida").textContent = vidas;
-  document.getElementById("Puntos").textContent = puntos;
+  document.getElementById("Vida").textContent = lives;
+  document.getElementById("Puntos").textContent = score;
 }
 
-function ganadora(idCarta1, idCarta2) {
-  puntos++;
-  vidas++;
-  const card1 = document.getElementById(idCarta1);
-  const card2 = document.getElementById(idCarta2);
-  card1.remove();
-  card2.remove();
+function ganadora(cardId1, cardId2) {
+  score++;
+  lives++;
+
+  const card1Element = document.getElementById(cardId1);
+  const card2Element = document.getElementById(cardId2);
+
+  card1Element.remove();
+  card2Element.remove();
 
   actualizarStats();
 }
 
 function perdedora() {
-  vidas--;
-  if (vidas <= 0) {
-    alert("ENDGAME()");
-    enable_game = false;
+  lives--;
+
+  if (lives <= 0) {
+    //alert("ENDGAME()");
+    gameEnabled = false;
   }
+
   actualizarStats();
 }
 
-function compararCartas(id, nombreCarta) {
-  // let mensaje = "ID: " + id + " Nombre: " + nombreCarta;
-  // alert(mensaje);
-
-  if (!Carta1) {
-    Carta1 = new Carta(id, nombreCarta);
-    //console.log(Carta1);
-  } else if (Carta1 && !Carta2) {
-    Carta2 = new Carta(id, nombreCarta);
-    //console.log("Carta2: ", Carta2);
+function compararCartas(id, cardName) {
+  if (!card1) {
+    card1 = new Carta(id, cardName);
+  } else if (card1 && !card2) {
+    card2 = new Carta(id, cardName);
   }
 
-  if (Carta1 && Carta2) {
+  if (card1 && card2) {
     cooldown = true;
+
     setTimeout(() => {
-      console.log(Carta1);
-      console.log(Carta2);
+      console.log(card1);
+      console.log(card2);
       console.log(cooldown);
 
-      if (Carta1.tipo == Carta2.tipo && Carta1.idHtml !== Carta2.idHtml) {
-        alert("GANAMOSSS");
-        ganadora(Carta1.idHtml, Carta2.idHtml);
-      } else {
-        // alert("perdimos");
-        // alert("HOLAAAAAAAAAAAAAA");
-        let flipCarta1 = document.querySelector(`[data-id="${Carta1.idHtml}"]`);
-        // alert(Carta1.id);
-        let flipCarta2 = document.querySelector(`[data-id="${Carta2.idHtml}"]`);
+      if (card1.type == card2.type && card1.htmlId !== card2.htmlId) {
+        //alert("GANAMOSSS");
 
-        flipCarta1.classList.toggle("flipped");
-        flipCarta2.classList.toggle("flipped");
+        ganadora(card1.htmlId, card2.htmlId);
+      } else {
+        let firstFlippedCard = document.querySelector(
+          `[data-id="${card1.htmlId}"]`,
+        );
+
+        let secondFlippedCard = document.querySelector(
+          `[data-id="${card2.htmlId}"]`,
+        );
+
+        firstFlippedCard.classList.toggle("flipped");
+        secondFlippedCard.classList.toggle("flipped");
 
         perdedora();
       }
-      Carta1 = null;
-      Carta2 = null;
+
+      card1 = null;
+      card2 = null;
     }, 1000);
 
     setTimeout(() => {
@@ -154,13 +155,17 @@ function compararCartas(id, nombreCarta) {
   }
 }
 
-function Reset() {
-  id_carta = 0; //autoincremental para enlazar las cartas random con su tipo
-  puntos = 0;
-  vidas = 5;
-  diccionario_random = {};
-  enable_game = true;
+function resetGame() {
+  cardId = 0;
+
+  score = 0;
+  lives = 5;
+
+  cardDictionary = {};
+
+  gameEnabled = true;
   cooldown = false;
+
   actualizarStats();
 
   document.getElementById("mesa-imagenes").innerHTML = "";
@@ -169,27 +174,28 @@ function Reset() {
 }
 
 async function iniciarPartida() {
-  mezclar(cartas);
+  mezclar(cards);
 
-  document.querySelectorAll(".carta").forEach((back) => {
-    back.addEventListener("click", () => {
-      if (!cooldown && enable_game) {
-        let toque = document.querySelector(`[data-id="${back.id}"]`);
-        toque.classList.toggle("flipped");
+  document.querySelectorAll(".carta").forEach((backCard) => {
+    backCard.addEventListener("click", () => {
+      if (!cooldown && gameEnabled) {
+        let selectedCard = document.querySelector(`[data-id="${backCard.id}"]`);
 
-        compararCartas(back.id, diccionario_random[back.id]);
+        selectedCard.classList.toggle("flipped");
+
+        compararCartas(backCard.id, cardDictionary[backCard.id]);
       }
     });
   });
 }
 
 async function main() {
-  cartas = await CargarCartas();
+  cards = await cargarCartas();
 
-  let reset = document.getElementById("Reset");
+  let resetButton = document.getElementById("Reset");
 
-  reset.addEventListener("click", function () {
-    Reset();
+  resetButton.addEventListener("click", function () {
+    resetGame();
   });
 
   iniciarPartida();

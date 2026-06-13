@@ -7,16 +7,132 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
-    hola mundo
+    <!-- Scene and HUD (kept existing IDs for JS compatibility) -->
+    <div class="scene">
+      <header class="hud">
+        <div class="panel">
+          <div class="panel-title">Vidas</div>
+          <div class="panel-value" id="Vida">5</div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Puntos</div>
+          <div class="panel-value" id="Puntos">0</div>
+        </div>
+        <div class="controls">
+          <button id="Reset" class="btn-reset">Reset</button>
+        </div>
+      </header>
 
-    <div>
-      <p>Vidas: <span id="Vida">5</span></p>
-      <p>Puntos: <span id="Puntos">0</span></p>
-      <button id="Reset">Reset</button>
+      <main class="board-wrap">
+        <div id="mesa-imagenes" class="board"></div>
+      </main>
     </div>
 
-    <div id="mesa-imagenes"></div>
-
     <script src="memory-card.js"></script>
+
+    <!-- Visual-only overlay for win/lose (non-intrusive, does not change game logic) -->
+    <div id="game-overlay" aria-hidden="true" role="dialog"></div>
+
+    <script>
+      (function () {
+        const vidaEl = document.getElementById("Vida");
+        const board = document.getElementById("mesa-imagenes");
+        const overlay = document.getElementById("game-overlay");
+        let shown = false;
+
+        function buildOverlay(title, message, type) {
+          overlay.className = "";
+          overlay.classList.add(type);
+          overlay.innerHTML = "";
+          const panel = document.createElement("div");
+          panel.className = "panel";
+          const h1 = document.createElement("h1");
+          h1.textContent = title;
+          const p = document.createElement("p");
+          p.textContent = message;
+          const btn = document.createElement("button");
+          btn.textContent = "Cerrar";
+          btn.className = "btn-reset";
+          btn.style.marginTop = "14px";
+          btn.addEventListener("click", () => {
+            overlay.classList.remove("visible");
+            overlay.setAttribute("aria-hidden", "true");
+            shown = false;
+            overlay.innerHTML = '';
+          });
+          panel.appendChild(h1);
+          panel.appendChild(p);
+          panel.appendChild(btn);
+          overlay.appendChild(panel);
+        }
+
+        function showOverlay(title, message, type) {
+          if (shown) return;
+          shown = true;
+          buildOverlay(title, message, type);
+          overlay.classList.add("visible");
+          overlay.setAttribute("aria-hidden", "false");
+          // also fire a native alert for legacy support
+          //setTimeout(()=>{try{alert(title+"\n\n"+message)}catch(e){}},80);
+        }
+
+        // Observe Vida changes
+        if (vidaEl) {
+          const moVida = new MutationObserver(() => {
+            const v = parseInt(vidaEl.textContent || "0", 10);
+            if (v <= 0) {
+              showOverlay(
+                "Has perdido",
+                "Te has quedado sin vidas. Intenta de nuevo.",
+                "lose",
+              );
+            }
+          });
+          moVida.observe(vidaEl, {
+            characterData: true,
+            childList: true,
+            subtree: true,
+          });
+        }
+
+        // Observe board for empty -> win
+        if (board) {
+          const moBoard = new MutationObserver(() => {
+            // if board empty and overlay not shown and there are no back cards left -> win
+            const backs = board.querySelectorAll(".back");
+            if (backs.length === 0 && board.children.length > 0) {
+              // there are cards but no backs: matched state, but we avoid showing repeatedly
+              showOverlay(
+                "¡Ganaste!",
+                "Encontraste todas las parejas. Bien jugado.",
+                "win",
+              );
+            } else if (board.children.length === 0) {
+              // if fully empty (safety), treat as win when not in reset flow
+              // small timeout to avoid brief empty state during reset
+              setTimeout(() => {
+                if (board.children.length === 0)
+                  showOverlay(
+                    "¡Ganaste!",
+                    "Encontraste todas las parejas. Bien jugado.",
+                    "win",
+                  );
+              }, 200);
+            }
+          });
+          moBoard.observe(board, { childList: true, subtree: true });
+        }
+
+        const resetBtn = document.getElementById('Reset');
+        if(resetBtn){
+          resetBtn.addEventListener('click', ()=>{
+            shown = false;
+            overlay.classList.remove('visible');
+            overlay.setAttribute('aria-hidden','true');
+            overlay.innerHTML = '';
+          });
+        }
+      })();
+    </script>
   </body>
 </html>

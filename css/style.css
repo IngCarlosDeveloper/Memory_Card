@@ -1,40 +1,179 @@
-body {
-  background-color: blueviolet;
+/* Medieval Memory Card — Visual & Animation layer only */
+:root{
+  --bg-wood:#2f2317; /* dark wood */
+  --bg-stone:#2a2a2a;
+  --accent-gold:#c9a84a;
+  --accent-burnt:#7a4a2b;
+  --panel-brown:#3b2a1f;
+  --muted-gray:#bdb6ad;
+  --card-edge:#a67c52;
+  --card-surface:linear-gradient(180deg,#3a2a1e 0%, #2d2015 60%);
+  --shadow-strong: 0 18px 40px rgba(0,0,0,0.6);
+  --shadow-soft: 0 8px 20px rgba(0,0,0,0.45);
 }
 
-#mesa-imagenes {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
+/* Page background resembling an aged wooden table with warm vignette */
+html,body{height:100%;}
+body{
+  margin:0;
+  font-family: "Cinzel", "Times New Roman", serif;
+  background:
+    radial-gradient(1200px 600px at 50% 10%, rgba(50,35,20,0.25), transparent 20%),
+    linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.35)),
+    var(--bg-wood);
+  color:var(--muted-gray);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding:28px;
+  box-sizing:border-box;
 }
 
-.card {
-  width: 269px;
-  height: 368px;
-  perspective: 1000px;
+/* Container layout */
+.scene{max-width:1200px;margin:0 auto;}
+.hud{display:flex;gap:18px;align-items:center;justify-content:space-between;margin-bottom:20px}
+.panel{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.08));
+  border:6px solid rgba(0,0,0,0.25); padding:8px 14px; border-radius:8px;min-width:90px;box-shadow:var(--shadow-soft), inset 0 -6px 12px rgba(0,0,0,0.25)}
+.panel-title{font-size:12px;color:rgba(240,230,200,0.8);letter-spacing:1px}
+.panel-value{font-size:20px;color:var(--accent-gold);font-weight:700;text-align:center}
+.controls{margin-left:auto}
+
+/* Reset button styled as a medieval plaque */
+.btn-reset{
+  appearance:none;border:0;padding:10px 18px;border-radius:8px;cursor:pointer;
+  background: linear-gradient(180deg, #7b5a2f, #4a2f18);
+  color: #f6ecd2;font-weight:700;border:2px solid rgba(0,0,0,0.45);
+  box-shadow: 0 6px 0 rgba(0,0,0,0.25), inset 0 -4px 8px rgba(255,255,255,0.02);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+.btn-reset:hover{transform:translateY(-3px);box-shadow: 0 12px 20px rgba(0,0,0,0.4);filter:brightness(1.05)}
+.btn-reset:active{transform:translateY(1px) scale(0.995);box-shadow: 0 6px 10px rgba(0,0,0,0.28)}
+
+/* Board container with subtle raised panel */
+.board-wrap{background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.08)); padding:22px;border-radius:14px;box-shadow:var(--shadow-strong);}
+.board{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;align-items:center;padding:12px}
+
+/* Card base — keep JS classes same as existing logic */
+.card{width:200px;height:274px;perspective:1200px;display:inline-block}
+.card_inner{width:100%;height:100%;transition:transform 0.6s cubic-bezier(.2,.9,.3,1);transform-style:preserve-3d;position:relative;border-radius:10px}
+
+/* Preserve original flip transform used by JS (do not change rotate values) */
+.card.flipped .card_inner{transform:rotateY(900deg)}
+
+.front,.back{position:absolute;inset:0;width:100%;height:100%;backface-visibility:hidden;border-radius:8px;object-fit:cover}
+.front{transform:rotateY(180deg);}
+
+/* Visual appearance of the back (card back) */
+.back{
+  background:var(--card-surface);
+  border:8px solid rgba(0,0,0,0.25);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 -6px 12px rgba(255,255,255,0.02);
+  padding:8px; box-sizing:border-box;display:block
 }
 
-.card_inner {
-  width: 100%;
-  height: 100%;
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
-  position: relative;
+/* Make the cards look like physical pieces */
+.card::before{content:"";position:absolute;inset:0;border-radius:10px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);mix-blend-mode:soft-light}
+.card::after{content:"";position:absolute;inset:-6px;border-radius:14px;z-index:-1;background:transparent;box-shadow:var(--shadow-soft)}
+
+/* Decorative carved border using an inner glow and edge */
+.card_inner::before{content:"";position:absolute;inset:6px;border-radius:6px;padding:6px;pointer-events:none;border:3px solid rgba(0,0,0,0.25);box-shadow:inset 0 1px 0 rgba(255,255,255,0.03)}
+
+/* Hover elevation */
+.card:hover{transform:translateY(-6px)}
+.card:hover .card_inner{box-shadow:0 20px 40px rgba(0,0,0,0.55); /* no transform here to avoid overriding flip */}
+
+/* Entrance animation (cards placed on table) */
+@keyframes placeIn{0%{opacity:0;transform:translateY(-18px) scale(.92) rotateX(6deg)}60%{opacity:1;transform:translateY(4px) scale(1.03) rotateX(0)}100%{opacity:1;transform:translateY(0) scale(1) rotateX(0)}}
+
+/* Shuffle visual: short burst of rotation/translation */
+@keyframes shuffleBurst{
+  0%{transform:translateY(0) rotate(0deg)}
+  20%{transform:translateY(-6px) rotate(-6deg)}
+  40%{transform:translateY(6px) rotate(8deg)}
+  60%{transform:translateY(-4px) rotate(-4deg)}
+  100%{transform:translateY(0) rotate(0deg)}
 }
 
-.card.flipped .card_inner {
-  transform: rotateY(900deg);
-}
+/* Apply entrance and shuffle with staggered delays (supports up to 18 cards) */
+#mesa-imagenes .card{opacity:0;transform-origin:50% 50%;animation:shuffleBurst 1.2s ease both, placeIn 0.5s cubic-bezier(.2,.9,.3,1) both;}
+#mesa-imagenes .card:nth-child(1){animation-delay:0s,0s}
+#mesa-imagenes .card:nth-child(2){animation-delay:0.02s,0.06s}
+#mesa-imagenes .card:nth-child(3){animation-delay:0.04s,0.12s}
+#mesa-imagenes .card:nth-child(4){animation-delay:0.06s,0.18s}
+#mesa-imagenes .card:nth-child(5){animation-delay:0.08s,0.24s}
+#mesa-imagenes .card:nth-child(6){animation-delay:0.10s,0.30s}
+#mesa-imagenes .card:nth-child(7){animation-delay:0.12s,0.36s}
+#mesa-imagenes .card:nth-child(8){animation-delay:0.14s,0.42s}
+#mesa-imagenes .card:nth-child(9){animation-delay:0.16s,0.48s}
+#mesa-imagenes .card:nth-child(10){animation-delay:0.18s,0.54s}
+#mesa-imagenes .card:nth-child(11){animation-delay:0.20s,0.60s}
+#mesa-imagenes .card:nth-child(12){animation-delay:0.22s,0.66s}
+#mesa-imagenes .card:nth-child(13){animation-delay:0.24s,0.72s}
+#mesa-imagenes .card:nth-child(14){animation-delay:0.26s,0.78s}
+#mesa-imagenes .card:nth-child(15){animation-delay:0.28s,0.84s}
+#mesa-imagenes .card:nth-child(16){animation-delay:0.30s,0.90s}
+#mesa-imagenes .card:nth-child(17){animation-delay:0.32s,0.96s}
+#mesa-imagenes .card:nth-child(18){animation-delay:0.34s,1.02s}
 
-.front,
-.back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
+/* Positive feedback: when back image has been removed by the game, make the remaining front glow/gild */
+/* Uses :has — modern browsers support; fallback below will gently highlight flipped cards */
+.card:not(:has(.back)) .front{
+  animation:golden 1s ease both;
+  transform-origin:center center;
+  box-shadow: 0 18px 40px rgba(201,168,74,0.15), 0 2px 12px rgba(0,0,0,0.6);
 }
+@keyframes golden{0%{filter:brightness(0.9) saturate(.8);transform:scale(1)}50%{filter:brightness(1.25) drop-shadow(0 6px 14px rgba(201,168,74,0.25));transform:scale(1.07)}100%{filter:none;transform:scale(1)}}
 
-.front {
-  transform: rotateY(900deg);
+/* Fallback mild gild for flipped cards while waiting for removal */
+.card.flipped .front{filter: drop-shadow(0 8px 16px rgba(201,168,74,0.06));}
+
+/* Incorrect pair feedback: when the card flips back (flipped class removed), create quick shake + red flash */
+@keyframes shakeX{0%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}100%{transform:translateX(0)}}
+
+/* Apply a subtle shake on unflip by animating the card_inner when class flipped is removed.
+   This will run whenever a card transitions back (i.e., on incorrect pair). */
+.card:not(.flipped) .card_inner{
+  /* only animate shake when transform is changing (user action). Use a short delay so initial load animations finish first */
+  animation: shakeX 0.45s ease 0.7s paused;
 }
+/* Unpause the animation when the element had the flipped class recently — the flip toggle triggers a repaint and restarts animations.
+   Browsers will treat the property change as a state change and the animation will play when applicable. */
+.card:not(.flipped) .card_inner[style], .card:not(.flipped):active .card_inner{animation-play-state:running}
+
+/* Add a red-tinted flash during the shake (transient) */
+.card:not(.flipped) .card_inner::after{content:"";position:absolute;inset:0;border-radius:8px;pointer-events:none;opacity:0;transition:opacity .25s}
+.card:not(.flipped) .card_inner[style]::after, .card:not(.flipped):active .card_inner::after{background:linear-gradient(90deg, rgba(200,20,20,0.12), rgba(200,40,40,0.06));opacity:1}
+
+/* Make front images sit nicely with borders */
+.front{border-radius:6px;box-shadow:inset 0 -6px 12px rgba(0,0,0,0.25)}
+
+/* Reset visual animation (when Reset button focused) — play absorbing fade on board */
+/* Use sibling selector — button keeps focus after click so this runs while JS clears and rebuilds board */
+#Reset:focus ~ .board-wrap .board::before{
+  content:"";position:absolute;inset:0;background:radial-gradient(circle at center, rgba(50,35,20,0.0) 0%, rgba(20,10,6,0.85) 70%);border-radius:14px;animation:absorb 0.9s ease both;pointer-events:none;z-index:10}
+@keyframes absorb{0%{opacity:0;transform:scale(1);filter:blur(0)}60%{opacity:1;transform:scale(.98);filter:blur(2px)}100%{opacity:1;transform:scale(.96);filter:blur(6px)}}
+
+/* Responsiveness */
+@media (max-width:740px){.card{width:140px;height:190px}.panel-value{font-size:16px}}
+
+/* Keep any existing small rules intact if present */
+
+/* Ensure flipped state has priority over hover transforms */
+.card.flipped .card_inner{transform:rotateY(180deg) !important}
+
+/* Prevent hover/effects on matched/removed cards (no .back present) */
+.card:not(:has(.back)){pointer-events:none;opacity:1}
+.card:not(:has(.back)) .card_inner{transition:none !important;transform:none !important;box-shadow:none}
+
+/* Overlay for win/lose */
+#game-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .35s ease;z-index:999}
+#game-overlay.visible{pointer-events:auto;opacity:1}
+#game-overlay .panel{min-width:320px;max-width:90%;text-align:center;padding:32px;border-radius:12px;background:linear-gradient(180deg, rgba(20,12,8,0.95), rgba(10,6,4,0.95));box-shadow:0 30px 60px rgba(0,0,0,0.6);border:4px solid rgba(201,168,74,0.12)}
+#game-overlay h1{margin:0 0 8px 0;font-size:28px;color:var(--accent-gold);letter-spacing:1px}
+#game-overlay p{margin:0;color:var(--muted-gray)}
+@keyframes overlayPulse{0%{transform:scale(.98);opacity:.9}50%{transform:scale(1.02);opacity:1}100%{transform:scale(1);opacity:1}}
+#game-overlay.visible .panel{animation:overlayPulse .6s ease both}
+
+/* Win / lose specific stylings */
+#game-overlay.win .panel{border-color:rgba(201,168,74,0.6);box-shadow:0 40px 80px rgba(201,168,74,0.08)}
+#game-overlay.lose .panel{border-color:rgba(200,30,30,0.6);box-shadow:0 40px 80px rgba(200,30,30,0.06)}
