@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
-    <!-- Scene and HUD (kept existing IDs for JS compatibility) -->
+    <!-- Scene and HUD       (kept existing IDs for JS compatibility) -->
     <div class="scene">
       <header class="hud">
         <div class="panel">
@@ -58,7 +58,7 @@
             overlay.classList.remove("visible");
             overlay.setAttribute("aria-hidden", "true");
             shown = false;
-            overlay.innerHTML = '';
+            overlay.innerHTML = "";
           });
           panel.appendChild(h1);
           panel.appendChild(p);
@@ -123,13 +123,13 @@
           moBoard.observe(board, { childList: true, subtree: true });
         }
 
-        const resetBtn = document.getElementById('Reset');
-        if(resetBtn){
-          resetBtn.addEventListener('click', ()=>{
+        const resetBtn = document.getElementById("Reset");
+        if (resetBtn) {
+          resetBtn.addEventListener("click", () => {
             shown = false;
-            overlay.classList.remove('visible');
-            overlay.setAttribute('aria-hidden','true');
-            overlay.innerHTML = '';
+            overlay.classList.remove("visible");
+            overlay.setAttribute("aria-hidden", "true");
+            overlay.innerHTML = "";
           });
         }
       })();
