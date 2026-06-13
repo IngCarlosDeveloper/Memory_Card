@@ -104,7 +104,7 @@ function perdedora() {
   vidas--;
   if (vidas <= 0) {
     alert("ENDGAME()");
-    enable_game = 0;
+    enable_game = false;
   }
   actualizarStats();
 }
@@ -122,32 +122,48 @@ function compararCartas(id, nombreCarta) {
   }
 
   if (Carta1 && Carta2) {
-    console.log(Carta1);
-    console.log(Carta2);
-    if (Carta1.tipo == Carta2.tipo && Carta1.idHtml !== Carta2.idHtml) {
-      alert("GANAMOSSS");
-      ganadora(Carta1.idHtml, Carta2.idHtml);
-    } else {
-      // alert("perdimos");
-      // alert("HOLAAAAAAAAAAAAAA");
-      let flipCarta1 = document.querySelector(`[data-id="${Carta1.idHtml}"]`);
-      // alert(Carta1.id);
-      let flipCarta2 = document.querySelector(`[data-id="${Carta2.idHtml}"]`);
+    cooldown = true;
+    setTimeout(() => {
+      console.log(Carta1);
+      console.log(Carta2);
+      console.log(cooldown);
 
-      flipCarta1.classList.toggle("flipped");
-      flipCarta2.classList.toggle("flipped");
+      if (Carta1.tipo == Carta2.tipo && Carta1.idHtml !== Carta2.idHtml) {
+        alert("GANAMOSSS");
+        ganadora(Carta1.idHtml, Carta2.idHtml);
+      } else {
+        // alert("perdimos");
+        // alert("HOLAAAAAAAAAAAAAA");
+        let flipCarta1 = document.querySelector(`[data-id="${Carta1.idHtml}"]`);
+        // alert(Carta1.id);
+        let flipCarta2 = document.querySelector(`[data-id="${Carta2.idHtml}"]`);
 
-      perdedora();
-    }
-    Carta1 = null;
-    Carta2 = null;
+        flipCarta1.classList.toggle("flipped");
+        flipCarta2.classList.toggle("flipped");
+
+        perdedora();
+      }
+      Carta1 = null;
+      Carta2 = null;
+    }, 1000);
+
+    setTimeout(() => {
+      cooldown = false;
+    }, 1000);
   }
 }
 
 async function main() {
-  let cartas = await CargarCartas();
+  cartas = await CargarCartas();
   //console.log(cartas);
   mezclar(cartas);
+
+  let reset = document.getElementById("Reset");
+
+  reset.addEventListener("click", function () {
+    alert("RESETEAO PAPA");
+    mezclar(cartas);
+  });
 
   //Aqui monitoreamos las cartas seleccionadas
   // const ClaseCarta = document.querySelectorAll(".carta");
@@ -169,23 +185,22 @@ async function main() {
   //   }
   // });
 
-  if (enable_game) {
-    document.querySelectorAll(".carta").forEach((back) => {
-      back.addEventListener("click", () => {
-        // document.querySelectorAll(".card").forEach((card) => {
-        //   card.classList.toggle("flipped");
-        // });
-        if (enable_game) return;
+  document.querySelectorAll(".carta").forEach((back) => {
+    back.addEventListener("click", () => {
+      // document.querySelectorAll(".card").forEach((card) => {
+      //   card.classList.toggle("flipped");
+      // });
 
+      if (!cooldown && enable_game) {
+        console.log("TITANICOOOOOOOOO");
+        console.log("luna");
         let toque = document.querySelector(`[data-id="${back.id}"]`);
         toque.classList.toggle("flipped");
 
-        setTimeout(() => {
-          compararCartas(back.id, diccionario_random[back.id]);
-        }, 1000);
-      });
+        compararCartas(back.id, diccionario_random[back.id]);
+      }
     });
-  }
+  });
 }
 
 main();
