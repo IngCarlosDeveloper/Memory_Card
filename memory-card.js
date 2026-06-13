@@ -92,6 +92,7 @@ function actualizarStats() {
 
 function ganadora(idCarta1, idCarta2) {
   puntos++;
+  vidas++;
   const card1 = document.getElementById(idCarta1);
   const card2 = document.getElementById(idCarta2);
   card1.remove();
@@ -153,47 +154,26 @@ function compararCartas(id, nombreCarta) {
   }
 }
 
-async function main() {
-  cartas = await CargarCartas();
-  //console.log(cartas);
+function Reset() {
+  id_carta = 0; //autoincremental para enlazar las cartas random con su tipo
+  puntos = 0;
+  vidas = 5;
+  diccionario_random = {};
+  enable_game = true;
+  cooldown = false;
+  actualizarStats();
+
+  document.getElementById("mesa-imagenes").innerHTML = "";
+
+  iniciarPartida();
+}
+
+async function iniciarPartida() {
   mezclar(cartas);
-
-  let reset = document.getElementById("Reset");
-
-  reset.addEventListener("click", function () {
-    alert("RESETEAO PAPA");
-    mezclar(cartas);
-  });
-
-  //Aqui monitoreamos las cartas seleccionadas
-  // const ClaseCarta = document.querySelectorAll(".carta");
-
-  // ClaseCarta.forEach(function (carta) {
-  //   carta.addEventListener("click", function () {
-  //     let contexto = "Tipo: " + carta.dataset.id + " id: " + carta.id;
-  //     //alert(carta.dataset.id);
-  //     alert(contexto);
-  //     compararCartas(carta.id, carta.dataset.id);
-  //   });
-  // });
-
-  // document.querySelectorAll(".card").forEach((card) => {
-  //   if (!card.classList.contains("card, flipped")) {
-  //     card.addEventListener("click", () => {
-  //       card.classList.toggle("flipped");
-  //     });
-  //   }
-  // });
 
   document.querySelectorAll(".carta").forEach((back) => {
     back.addEventListener("click", () => {
-      // document.querySelectorAll(".card").forEach((card) => {
-      //   card.classList.toggle("flipped");
-      // });
-
       if (!cooldown && enable_game) {
-        console.log("TITANICOOOOOOOOO");
-        console.log("luna");
         let toque = document.querySelector(`[data-id="${back.id}"]`);
         toque.classList.toggle("flipped");
 
@@ -201,6 +181,18 @@ async function main() {
       }
     });
   });
+}
+
+async function main() {
+  cartas = await CargarCartas();
+
+  let reset = document.getElementById("Reset");
+
+  reset.addEventListener("click", function () {
+    Reset();
+  });
+
+  iniciarPartida();
 }
 
 main();
